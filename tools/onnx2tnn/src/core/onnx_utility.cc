@@ -575,7 +575,7 @@ float* get_tensor_proto_mutable_data(onnx::TensorProto& tp) {
     }
 }
 
-int read_proto_from_binary(const char* filepath,
+int read_proto_from_binary_tnn(const char* filepath,
                            google::protobuf::Message* message) {
     std::ifstream fs(filepath, std::ifstream::in | std::ifstream::binary);
     if (!fs.is_open()) {

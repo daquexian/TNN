@@ -65,7 +65,7 @@ string OnnxOpConverter::TNNLayerProto(NodeProto &node,
 }
 
 int OnnxOpConverter::WriteTensorData(const onnx::TensorProto &tensor,
-                                     serializer *writer, DataType dataType) {
+                                     serializer *writer, parser::DataType dataType) {
     int ret = 0;
     do {
         int item_size = get_tensor_proto_data_size(tensor);
@@ -106,7 +106,7 @@ int OnnxOpConverter::WriteTensorData(const onnx::TensorProto &tensor,
 }
 
 int OnnxOpConverter::WriteRawData(const float *raw_data, int data_count,
-                                  serializer *writer, DataType dataType) {
+                                  serializer *writer, parser::DataType dataType) {
     int ret = 0;
     do {
         if (data_count == 0 || !raw_data) {
@@ -115,12 +115,12 @@ int OnnxOpConverter::WriteRawData(const float *raw_data, int data_count,
             break;
         }
 
-        if (dataType == DATA_TYPE_FLOAT) {
+        if (dataType == parser::DATA_TYPE_FLOAT) {
             writer->put_raw(data_count * sizeof(float), (char *)raw_data);
-        } else if (dataType == DATA_TYPE_HALF) {
+        } else if (dataType == parser::DATA_TYPE_HALF) {
             float16 *half_data = new float16[data_count];
             ret = TNN_NS::ConvertFromFloatToHalf((float *)raw_data, (void *)half_data, data_count);
-            writer->put_raw(data_count * sizeof(float16), (char *)half_data, DATA_TYPE_HALF);
+            writer->put_raw(data_count * sizeof(float16), (char *)half_data, parser::DATA_TYPE_HALF);
             delete[] half_data;
         }
     } while (0);

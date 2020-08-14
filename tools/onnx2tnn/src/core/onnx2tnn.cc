@@ -16,7 +16,7 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <execinfo.h>
+//#include <execinfo.h>
 
 #include <set>
 #include <exception>
@@ -64,21 +64,18 @@ int RemoveIndexNode(std::vector<IndexNode>& index_nodes, int index) {
     return 0;
 }
 
-Onnx2TNN::Onnx2TNN(std::string onnx_model_path, std::string tnn_proto_path, std::string tnn_model_path) {
-    tnn_proto_path_ = tnn_proto_path;
-    tnn_model_path_ = tnn_model_path;
-
-    onnx_model_path_ = onnx_model_path;
+Onnx2TNN::Onnx2TNN(void **buf, size_t buflen) {
+    onnx_model_.ParseFromArray(*buf, buflen);
 }
 
 Onnx2TNN::~Onnx2TNN() {
-    if (!onnx_model_) {
-        delete onnx_model_;
-    }
+//    if (!onnx_model_) {
+//        delete onnx_model_;
+//    }
 }
 
 bool Onnx2TNN::CheckIs3DModel() {
-    const onnx::GraphProto& graph = onnx_model_->graph();
+    const onnx::GraphProto& graph = onnx_model_.graph();
     //写入每层的权值
     for (int i = 0; i < graph.node_size(); i++) {
         const onnx::NodeProto& node = graph.node(i);
@@ -91,13 +88,15 @@ bool Onnx2TNN::CheckIs3DModel() {
     return false;
 }
 
-int Onnx2TNN::Convert(DataType dataType) {
+tl::expected<NcnnModel, std::string> Onnx2TNN::Convert(parser::DataType dataType) {
     int ret = 0;
+    std::string error_message = "";
 
     //加载onnx模型
+    /*
     if (!onnx_model_) {
         onnx::ModelProto* onnx_model = new onnx::ModelProto();
-        ret                          = read_proto_from_binary(onnx_model_path_.c_str(), onnx_model);
+        ret                          = read_proto_from_binary_tnn(onnx_model_path_.c_str(), onnx_model);
 
         if (ret != 0) {
             delete onnx_model;
@@ -108,45 +107,53 @@ int Onnx2TNN::Convert(DataType dataType) {
 
         onnx_model_ = onnx_model;
     }
+     */
 
     //提取onnx的blob和weights信息
     ret = OnnxExtractBlobWeights();
     if (ret != 0) {
-        LOGE("OnnxExtractBlobWeights failed");
-        return ret;
+        error_message = "OnnxExtractBlobWeights failed";
+        //return ret;
     }
 
     onnx_net_info_.data_type   = dataType;
     onnx_net_info_.is_3D_model = CheckIs3DModel();
-    onnx_net_info_.opset       = onnx_model_->opset_import(0).version();
+    onnx_net_info_.opset       = onnx_model_.opset_import(0).version();
 
     ret = TNNWriteProto();
     if (ret != 0) {
-        LOGE("TNNWriteProto failed");
-        return ret;
+        error_message = "TNNWriteProto failed";
+        //return ret;
     }
 
     ret = TNNWriteModel();
     if (ret != 0) {
-        LOGE("TNNWriteModel failed");
-        return ret;
+        error_message = "TNNWriteModel failed";
+        //return ret;
     }
 
-    return ret;
+//    auto b1 = file_proto.CloseAndGetBuf();
+//    auto b2 = file_model.str();
+//    auto ret_ = std::make_tuple(b1, std::make_pair((void*)b2.data(), (size_t)b2.size()), error_message);
+
+    auto model_size = file_model.str().size();
+    return std::make_tuple(file_proto.CloseAndGetBuf(),
+            std::make_pair((void*)file_model.str().data(), (size_t)model_size), error_message);;
 }
 
 int Onnx2TNN::TNNWriteProto() {
     int ret          = 0;
-    FILE* file_proto = nullptr;
 
     do {
+        /*
         file_proto = fopen(tnn_proto_path_.c_str(), "w");
         if (!file_proto) {
             LOGE("fopen proto file failed, path:%s\n", tnn_proto_path_.c_str());
             break;
         }
+         */
 
-        const onnx::GraphProto& graph = onnx_model_->graph();
+        const onnx::GraphProto& graph = onnx_model_.graph();
 
         ostringstream proto_net_info;
         {
@@ -332,20 +339,20 @@ int Onnx2TNN::TNNWriteProto() {
 
     } while (0);
 
-    if (file_proto) {
-        fclose(file_proto);
-    }
+//    if (file_proto) {
+//        fclose(file_proto);
+//    }
     return ret;
 }
 
 int Onnx2TNN::OnnxExtractBlobWeights() {
-    if (!onnx_model_) {
-        LOGE("onnx_model is nil");
-        return -1;
-    }
+//    if (!onnx_model_) {
+//        LOGE("onnx_model is nil");
+//        return -1;
+//    }
 
-    const onnx::GraphProto& graph   = onnx_model_->graph();
-    onnx::GraphProto* mutable_graph = onnx_model_->mutable_graph();
+    const onnx::GraphProto& graph   = onnx_model_.graph();
+    onnx::GraphProto* mutable_graph = onnx_model_.mutable_graph();
     TransferInputName(mutable_graph);
 
     int node_count = graph.node_size();
@@ -722,6 +729,7 @@ int Onnx2TNN::ClearEmptyNode(std::vector<IndexNode>& index_nodes) {
     return 0;
 }
 
+/*
 std::string get_backtrack() {
     const int MAX_SIZE = 10;
     std::string backtrace_str;
@@ -734,3 +742,4 @@ std::string get_backtrack() {
     free(strings);
     return backtrace_str;
 }
+ */

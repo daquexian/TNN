@@ -28,13 +28,16 @@
 #include <sstream>
 #include <exception>
 
+#include <wmc_utils.h>
+#include <expected.hpp>
+
 #include "macro.h"
 
 #include "objseri/objseri.h"
 #include "onnx2tnn_prefix.h"
 #include "onnx_op_converter.h"
 
-#include "onnx.pb.h"
+#include "onnx/onnx_pb.h"
 #include "onnx_utility.h"
 
 using namespace std;
@@ -58,17 +61,16 @@ int RemoveIndexNode(std::vector<IndexNode> &index_nodes, int index);
 
 class Onnx2TNN {
 public:
-    Onnx2TNN(std::string onnx_model_path, std::string tnn_proto_path,
-                  std::string tnn_model_path);
+    FakeFile file_proto;
+    stringstream file_model;
+
+    Onnx2TNN(void **buf, size_t buflen);
     ~Onnx2TNN();
 
-    int Convert(DataType dataType = DATA_TYPE_FLOAT);
+    tl::expected<NcnnModel, std::string> Convert(parser::DataType dataType = parser::DATA_TYPE_FLOAT);
 
 private:
-    std::string tnn_proto_path_;
-    std::string tnn_model_path_;
-    std::string onnx_model_path_;
-    onnx::ModelProto* onnx_model_ = nullptr;
+    onnx::ModelProto onnx_model_;
     int OnnxExtractBlobWeights();
     bool CheckIs3DModel();
 
@@ -270,6 +272,6 @@ protected:
 
 };
 
-std::string get_backtrack();
+//std::string get_backtrack();
 
 #endif /* onnx2tnn_hpp */

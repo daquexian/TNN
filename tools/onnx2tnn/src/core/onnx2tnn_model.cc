@@ -25,22 +25,24 @@ typedef uint16_t float16;
 int Onnx2TNN::TNNWriteModel() {
     int ret = 0;
 
-    std::ofstream file_model;
-    file_model.open(tnn_model_path_, std::ios::binary);
+//    std::ofstream file_model;
+//    file_model.open(tnn_model_path_, std::ios::binary);
     file_model.write((char *)(&g_version_magic_number_tnn), sizeof(g_version_magic_number_tnn));
     int model_pos = sizeof(g_version_magic_number_tnn);
 
     do {
+        /*
         if (!file_model || !file_model.is_open() || !file_model.good()) {
             file_model.close();
             DLog("model file open failed\n");
             assert(0);
             break;
         }
+         */
 
         serializer net_writer(file_model);
 
-        const onnx::GraphProto& graph = onnx_model_->graph();
+        const onnx::GraphProto& graph = onnx_model_.graph();
 
         //统计含有权值的层数
         int weight_layer_count = 0;
@@ -73,7 +75,7 @@ int Onnx2TNN::TNNWriteModel() {
         file_model.seekp(0, ios::end);
     } while (0);
 
-    file_model.close();
+//    file_model.close();
 
     return ret;
 }

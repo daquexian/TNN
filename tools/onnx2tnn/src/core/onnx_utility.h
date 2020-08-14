@@ -31,7 +31,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 
-#include "onnx.pb.h"
+#include "onnx/onnx_pb.h"
 #include "onnx_op_converter.h"
 
 std::vector<int64_t> get_tensor_proto_reshape_shape(const onnx::TensorProto& tp);
@@ -105,7 +105,7 @@ std::vector<T> get_tensor_proto_data_vector(const onnx::TensorProto &tp) {
     return data_vec;
 }
 
-int read_proto_from_binary(const char *filepath,
+int read_proto_from_binary_tnn(const char *filepath,
                            google::protobuf::Message *message);
 
 bool set_node_attr_ai(onnx::NodeProto& node, const char* key, std::vector<int64_t> values);

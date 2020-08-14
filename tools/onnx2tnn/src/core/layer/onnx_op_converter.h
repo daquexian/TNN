@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "objseri.h"
-#include "onnx.pb.h"
+#include "onnx/onnx_pb.h"
 #include "onnx2tnn_prefix.h"
 
 using namespace std;
@@ -40,7 +40,7 @@ typedef uint16_t float16;
 typedef std::map<std::string, onnx::TensorProto> TensorProtoMap;
 typedef std::map<std::string, onnx::TensorShapeProto> TensorShapeMap;
 struct OnnxNetInfo {
-    DataType data_type = DATA_TYPE_FLOAT;
+    parser::DataType data_type = parser::DATA_TYPE_FLOAT;
     // onnx weight node and weight reshape node
     TensorProtoMap weights_map;
     TensorShapeMap weights_shape_map;
@@ -70,9 +70,9 @@ public:
     };
 
     int WriteTensorData(const onnx::TensorProto &tensor, serializer *writer,
-                        DataType dataType);
+                        parser::DataType dataType);
     int WriteRawData(const float *raw_data, int data_count, serializer *writer,
-                     DataType dataType);
+                     parser::DataType dataType);
 
 protected:
     string onnx_op_type_;
