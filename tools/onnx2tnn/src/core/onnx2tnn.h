@@ -67,7 +67,7 @@ public:
     Onnx2TNN(void **buf, size_t buflen);
     ~Onnx2TNN();
 
-    tl::expected<NcnnModel, std::string> Convert(parser::DataType dataType = parser::DATA_TYPE_FLOAT);
+    tl::expected<std::tuple<Buffer, std::string, std::string>, std::string> Convert(parser::DataType dataType = parser::DATA_TYPE_FLOAT);
 
 private:
     onnx::ModelProto onnx_model_;

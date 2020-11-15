@@ -88,7 +88,7 @@ bool Onnx2TNN::CheckIs3DModel() {
     return false;
 }
 
-tl::expected<NcnnModel, std::string> Onnx2TNN::Convert(parser::DataType dataType) {
+tl::expected<std::tuple<Buffer, std::string, std::string>, std::string> Onnx2TNN::Convert(parser::DataType dataType) {
     int ret = 0;
     std::string error_message = "";
 
@@ -131,14 +131,10 @@ tl::expected<NcnnModel, std::string> Onnx2TNN::Convert(parser::DataType dataType
         error_message = "TNNWriteModel failed";
         //return ret;
     }
-
-//    auto b1 = file_proto.CloseAndGetBuf();
-//    auto b2 = file_model.str();
-//    auto ret_ = std::make_tuple(b1, std::make_pair((void*)b2.data(), (size_t)b2.size()), error_message);
-
-    auto model_size = file_model.str().size();
-    return std::make_tuple(file_proto.CloseAndGetBuf(),
-            std::make_pair((void*)file_model.str().data(), (size_t)model_size), error_message);;
+    
+    const std::string str_file_model = file_model.str();
+    size_t model_size = (size_t)str_file_model.size();
+    return std::make_tuple(file_proto.CloseAndGetBuf(), str_file_model, error_message);
 }
 
 int Onnx2TNN::TNNWriteProto() {
